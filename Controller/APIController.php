@@ -44,6 +44,9 @@ class APIController extends AbstractController
         return new JsonResponse('Imported!', Response::HTTP_OK);
     }
 
+    /**
+     * @Route("/teams/was/imported", name="teams.was.imported")
+     */
     public function wasImported(Request $request): Response
     {
         $user = $this->ssoService->isAllowedUser($request->request->get('email'));
