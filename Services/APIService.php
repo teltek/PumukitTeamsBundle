@@ -37,7 +37,7 @@ class APIService
 
     public function find(string $teamsId): bool
     {
-        $multimediaObject = $this->documentManager->getRepository(MultimediaObject::class)->findBy([
+        $multimediaObject = $this->documentManager->getRepository(MultimediaObject::class)->findOneBy([
             'properties.teamsId' => $teamsId,
         ]);
 

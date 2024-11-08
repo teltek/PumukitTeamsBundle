@@ -45,7 +45,7 @@ class APIController extends AbstractController
     }
 
     /**
-     * @Route("/teams/was/imported", name="teams.was.imported")
+     * @Route("/check", name="teams.check")
      */
     public function wasImported(Request $request): Response
     {
