@@ -1,0 +1,18 @@
+services:
+  _defaults:
+    autowire:      true
+    autoconfigure: true
+    public:        true
+
+  Pumukit\TeamsBundle\Controller\:
+    resource: '../../Controller'
+    tags: ['controller.service_arguments']
+
+  Pumukit\TeamsBundle\Services\APIService:
+    class: Pumukit\TeamsBundle\Services\APIService
+
+  Pumukit\TeamsBundle\Services\MultimediaObjectUpdaterService:
+    class: Pumukit\TeamsBundle\Services\MultimediaObjectUpdaterService
+
+  Pumukit\TeamsBundle\Services\SSOService:
+    class: Pumukit\TeamsBundle\Services\SSOService

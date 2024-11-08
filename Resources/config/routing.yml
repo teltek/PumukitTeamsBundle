@@ -1,0 +1,4 @@
+pumukit_teams:
+    resource: "@PumukitTeamsBundle/Controller/"
+    type:     annotation
+    prefix:   /
