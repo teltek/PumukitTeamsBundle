@@ -28,8 +28,7 @@ class APIService
         MultimediaObjectUpdaterService $multimediaObjectUpdaterService,
         JobCreator $jobCreator,
         FactoryService $factoryService
-    )
-    {
+    ) {
         $this->documentManager = $documentManager;
         $this->multimediaObjectUpdaterService = $multimediaObjectUpdaterService;
         $this->jobCreator = $jobCreator;
@@ -39,10 +38,10 @@ class APIService
     public function find(string $teamsId): bool
     {
         $multimediaObject = $this->documentManager->getRepository(MultimediaObject::class)->findBy([
-            'properties.teamsId' => $teamsId
+            'properties.teamsId' => $teamsId,
         ]);
 
-        if(!$multimediaObject instanceof MultimediaObject) {
+        if (!$multimediaObject instanceof MultimediaObject) {
             return false;
         }
 

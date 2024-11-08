@@ -23,5 +23,4 @@ class SSOService
 
         return $user;
     }
-
 }

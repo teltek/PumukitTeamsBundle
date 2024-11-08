@@ -55,7 +55,7 @@ class APIController extends AbstractController
 
         $wasImported = $this->apiService->find($teamsId);
         if ($wasImported) {
-           return new JsonResponse(['imported' => true]);
+            return new JsonResponse(['imported' => true]);
         }
 
         return new JsonResponse(['imported' => false]);
