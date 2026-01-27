@@ -12,6 +12,7 @@ use Pumukit\SchemaBundle\Document\MultimediaObject;
 use Pumukit\SchemaBundle\Document\Series;
 use Pumukit\SchemaBundle\Document\User;
 use Pumukit\SchemaBundle\Services\FactoryService;
+use Pumukit\SchemaBundle\Services\PersonalSeriesService;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 class APIService
@@ -50,13 +51,63 @@ class APIService
 
     public function create(User $user, string $teamsId, UploadedFile $file): void
     {
-        $userSeries = $user->getPersonalSeries();
-        $series = $this->documentManager->getRepository(Series::class)->findOneBy(['_id' => new ObjectId($userSeries)]);
+        $series = $this->getOrCreatePersonalSeriesForApi($user);
 
         $multimediaObject = $this->factoryService->createMultimediaObject($series);
         $this->multimediaObjectUpdaterService->addTeamsProperty($multimediaObject, $teamsId);
 
         $jobOptions = new JobOptions(self::DEFAULT_PROFILE, 2, 'en', []);
         $this->jobCreator->fromUploadedFile($multimediaObject, $file, $jobOptions);
+    }
+
+    private function getOrCreatePersonalSeriesForApi(User $user): Series
+    {
+        if ($user->getPersonalSeries()) {
+            $series = $this->documentManager
+                ->getRepository(Series::class)
+                ->findOneBy(['_id' => new ObjectId($user->getPersonalSeries())])
+            ;
+
+            if ($series instanceof Series) {
+                return $series;
+            }
+        }
+
+        return $this->createPersonalSeriesForApi($user);
+    }
+
+    private function createPersonalSeriesForApi(User $user): Series
+    {
+        $series = $this->factoryService->createSeries(
+            $user,
+            $this->generateDefaultPersonalSeriesTitleForApi($user)
+        );
+
+        $series->setProperty(PersonalSeriesService::DEFAULT_PERSONAL_SERIES_PROPERTY, true);
+
+        $user->setPersonalSeries($series->getId());
+        $this->documentManager->flush();
+
+        return $series;
+    }
+
+    private function generateDefaultPersonalSeriesTitleForApi(User $user): array
+    {
+        return [
+            'en' => 'Videos of '.$user->getUsername(),
+            'es' => 'Vídeos de '.$user->getUsername(),
+            'ca' => 'Vídeos de '.$user->getUsername(),
+            'eu' => $user->getUsername().'-ren bideoak',
+            'gl' => 'Vídeos de '.$user->getUsername(),
+            'fr' => 'Vidéos de '.$user->getUsername(),
+            'de' => 'Videos von '.$user->getUsername(),
+            'it' => 'Video di '.$user->getUsername(),
+            'pt' => 'Vídeos de '.$user->getUsername(),
+            'va' => 'Vídeos de '.$user->getUsername(),
+            'ru' => 'Видео пользователя '.$user->getUsername(),
+            'zh' => $user->getUsername().'的影片',
+            'ja' => $user->getUsername().'のビデオ',
+            'ko' => $user->getUsername().'님의 동영상',
+        ];
     }
 }
