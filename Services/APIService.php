@@ -13,6 +13,7 @@ use Pumukit\SchemaBundle\Document\Series;
 use Pumukit\SchemaBundle\Document\User;
 use Pumukit\SchemaBundle\Services\FactoryService;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Pumukit\SchemaBundle\Services\PersonalSeriesService;
 
 class APIService
 {
@@ -22,17 +23,20 @@ class APIService
     private $multimediaObjectUpdaterService;
     private $jobCreator;
     private $factoryService;
+    private $personalSeriesService;
 
     public function __construct(
         DocumentManager $documentManager,
         MultimediaObjectUpdaterService $multimediaObjectUpdaterService,
         JobCreator $jobCreator,
-        FactoryService $factoryService
+        FactoryService $factoryService,
+        PersonalSeriesService $personalSeriesService
     ) {
         $this->documentManager = $documentManager;
         $this->multimediaObjectUpdaterService = $multimediaObjectUpdaterService;
         $this->jobCreator = $jobCreator;
         $this->factoryService = $factoryService;
+        $this->personalSeriesService = $personalSeriesService;
     }
 
     public function find(string $teamsId): bool
@@ -51,6 +55,10 @@ class APIService
     public function create(User $user, string $teamsId, UploadedFile $file): void
     {
         $userSeries = $user->getPersonalSeries();
+        dump($userSeries);
+        if (!$userSeries instanceof Series) {
+        $userSeries = $this->personalSeriesService->create();
+    	}
         $series = $this->documentManager->getRepository(Series::class)->findOneBy(['_id' => new ObjectId($userSeries)]);
 
         $multimediaObject = $this->factoryService->createMultimediaObject($series);
