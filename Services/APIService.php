@@ -13,53 +13,41 @@ use Pumukit\SchemaBundle\Document\Series;
 use Pumukit\SchemaBundle\Document\User;
 use Pumukit\SchemaBundle\Services\FactoryService;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
-use Pumukit\SchemaBundle\Services\PersonalSeriesService;
 
 class APIService
 {
     public const DEFAULT_PROFILE = 'master_copy';
+    private const TEAMS_DEFAULT_SERIES_PROPERTY = 'teams.default_series';
 
-    private $documentManager;
-    private $multimediaObjectUpdaterService;
-    private $jobCreator;
-    private $factoryService;
-    private $personalSeriesService;
+    private DocumentManager $documentManager;
+    private MultimediaObjectUpdaterService $multimediaObjectUpdaterService;
+    private JobCreator $jobCreator;
+    private FactoryService $factoryService;
 
     public function __construct(
         DocumentManager $documentManager,
         MultimediaObjectUpdaterService $multimediaObjectUpdaterService,
         JobCreator $jobCreator,
-        FactoryService $factoryService,
-        PersonalSeriesService $personalSeriesService
+        FactoryService $factoryService
     ) {
         $this->documentManager = $documentManager;
         $this->multimediaObjectUpdaterService = $multimediaObjectUpdaterService;
         $this->jobCreator = $jobCreator;
         $this->factoryService = $factoryService;
-        $this->personalSeriesService = $personalSeriesService;
     }
 
     public function find(string $teamsId): bool
     {
-        $multimediaObject = $this->documentManager->getRepository(MultimediaObject::class)->findOneBy([
-            'properties.teamsId' => $teamsId,
-        ]);
+        $multimediaObject = $this->documentManager
+            ->getRepository(MultimediaObject::class)
+            ->findOneBy(['properties.teamsId' => $teamsId]);
 
-        if (!$multimediaObject instanceof MultimediaObject) {
-            return false;
-        }
-
-        return true;
+        return $multimediaObject instanceof MultimediaObject;
     }
 
     public function create(User $user, string $teamsId, UploadedFile $file): void
     {
-        $userSeries = $user->getPersonalSeries();
-        dump($userSeries);
-        if (!$userSeries instanceof Series) {
-        $userSeries = $this->personalSeriesService->create();
-    	}
-        $series = $this->documentManager->getRepository(Series::class)->findOneBy(['_id' => new ObjectId($userSeries)]);
+        $series = $this->getSeriesForTeamsRecording($user);
 
         $multimediaObject = $this->factoryService->createMultimediaObject($series);
         $this->multimediaObjectUpdaterService->addTeamsProperty($multimediaObject, $teamsId);
@@ -67,4 +55,77 @@ class APIService
         $jobOptions = new JobOptions(self::DEFAULT_PROFILE, 2, 'en', []);
         $this->jobCreator->fromUploadedFile($multimediaObject, $file, $jobOptions);
     }
+
+
+    private function getSeriesForTeamsRecording(User $user): Series
+    {
+        $personalSeries = $this->getPersonalSeries($user);
+
+        if ($personalSeries instanceof Series) {
+            return $personalSeries;
+        }
+
+        return $this->getOrCreateTeamsDefaultSeries();
+    }
+
+
+    private function getPersonalSeries(User $user): ?Series
+    {
+        if (!$user->getPersonalSeries()) {
+            return null;
+        }
+
+        $series = $this->documentManager
+            ->getRepository(Series::class)
+            ->findOneBy(['_id' => new ObjectId($user->getPersonalSeries())]);
+
+        return $series instanceof Series ? $series : null;
+    }
+
+
+    private function getOrCreateTeamsDefaultSeries(): Series
+    {
+        $criteria = [
+            'properties.' . self::TEAMS_DEFAULT_SERIES_PROPERTY => true,
+        ];
+
+        $series = $this->documentManager
+            ->getRepository(Series::class)
+            ->findOneBy($criteria);
+
+        if ($series instanceof Series) {
+            return $series;
+        }
+
+        return $this->createTeamsDefaultSeries();
+    }
+
+    private function createTeamsDefaultSeries(): Series
+    {
+        $series = $this->factoryService->createSeries(
+            null,
+            $this->getTeamsDefaultSeriesTitle()
+        );
+
+        $series->setProperty(self::TEAMS_DEFAULT_SERIES_PROPERTY, true);
+
+        $this->documentManager->flush();
+
+        return $series;
+    }
+
+    private function getTeamsDefaultSeriesTitle(): array
+    {
+        return [
+            'en' => 'Teams Recordings',
+            'es' => 'Grabaciones de Teams',
+            'ca' => 'Gravacions de Teams',
+            'gl' => 'Gravacións de Teams',
+            'fr' => 'Enregistrements Teams',
+            'de' => 'Teams-Aufzeichnungen',
+            'it' => 'Registrazioni di Teams',
+            'pt' => 'Gravações do Teams',
+        ];
+    }
 }
+
