@@ -53,7 +53,7 @@ class APIService
     {
         $series = $this->getOrCreatePersonalSeriesForApi($user);
 
-        $multimediaObject = $this->factoryService->createMultimediaObject($series);
+        $multimediaObject = $this->factoryService->createMultimediaObject($series, true, $user);
         $this->multimediaObjectUpdaterService->addTeamsProperty($multimediaObject, $teamsId);
 
         $jobOptions = new JobOptions(self::DEFAULT_PROFILE, 2, 'en', []);
