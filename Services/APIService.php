@@ -6,6 +6,7 @@ namespace Pumukit\TeamsBundle\Services;
 
 use Doctrine\ODM\MongoDB\DocumentManager;
 use MongoDB\BSON\ObjectId;
+use Pumukit\CoreBundle\Services\i18nService;
 use Pumukit\EncoderBundle\Services\DTO\JobOptions;
 use Pumukit\EncoderBundle\Services\JobCreator;
 use Pumukit\SchemaBundle\Document\MultimediaObject;
@@ -23,17 +24,20 @@ class APIService
     private $multimediaObjectUpdaterService;
     private $jobCreator;
     private $factoryService;
+    private $i18nService;
 
     public function __construct(
         DocumentManager $documentManager,
         MultimediaObjectUpdaterService $multimediaObjectUpdaterService,
         JobCreator $jobCreator,
-        FactoryService $factoryService
+        FactoryService $factoryService,
+        i18nService $i18nService
     ) {
         $this->documentManager = $documentManager;
         $this->multimediaObjectUpdaterService = $multimediaObjectUpdaterService;
         $this->jobCreator = $jobCreator;
         $this->factoryService = $factoryService;
+        $this->i18nService = $i18nService;
     }
 
     public function find(string $teamsId): bool
@@ -49,11 +53,17 @@ class APIService
         return true;
     }
 
-    public function create(User $user, string $teamsId, UploadedFile $file): void
+    public function create(User $user, string $teamsId, UploadedFile $file, ?string $title = null): void
     {
         $series = $this->getOrCreatePersonalSeriesForApi($user);
 
         $multimediaObject = $this->factoryService->createMultimediaObject($series, true, $user);
+
+        if ($title !== null && $title !== '') {
+            $i18nTitle = $this->i18nService->generateI18nText($title);
+            $multimediaObject->setTitle($i18nTitle);
+        }
+
         $this->multimediaObjectUpdaterService->addTeamsProperty($multimediaObject, $teamsId);
 
         $jobOptions = new JobOptions(self::DEFAULT_PROFILE, 2, 'en', []);
