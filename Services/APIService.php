@@ -59,7 +59,7 @@ class APIService
 
         $multimediaObject = $this->factoryService->createMultimediaObject($series, true, $user);
 
-        if ($title !== null && $title !== '') {
+        if (null !== $title && '' !== $title) {
             $i18nTitle = $this->i18nService->generateI18nText($title);
             $multimediaObject->setTitle($i18nTitle);
         }
