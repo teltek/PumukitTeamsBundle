@@ -38,8 +38,9 @@ class APIController extends AbstractController
 
         $teamsId = $request->request->get('teamsId');
         $file = $request->files->get('file');
+        $title = $request->request->get('title');
 
-        $this->apiService->create($user, $teamsId, $file);
+        $this->apiService->create($user, $teamsId, $file, $title);
 
         return new JsonResponse('Imported!', Response::HTTP_OK);
     }
