@@ -61,7 +61,7 @@ class APIService
 
         if (null !== $title && '' !== $title) {
             $i18nTitle = $this->i18nService->generateI18nText($title);
-            $multimediaObject->setTitle($i18nTitle);
+            $multimediaObject->setI18nTitle($i18nTitle);
         }
 
         $this->multimediaObjectUpdaterService->addTeamsProperty($multimediaObject, $teamsId);
