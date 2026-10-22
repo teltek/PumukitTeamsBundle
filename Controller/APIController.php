@@ -10,11 +10,9 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 
-/**
- * @Route("/teams", methods="POST")
- */
+#[Route('/teams', methods: ['POST'])]
 class APIController extends AbstractController
 {
     private SSOService $ssoService;
@@ -26,9 +24,7 @@ class APIController extends AbstractController
         $this->apiService = $APIService;
     }
 
-    /**
-     * @Route("/import", name="teams.import")
-     */
+    #[Route('/import', name: 'teams.import')]
     public function import(Request $request): Response
     {
         $user = $this->ssoService->isAllowedUser($request->request->get('email'));
@@ -45,9 +41,7 @@ class APIController extends AbstractController
         return new JsonResponse('Imported!', Response::HTTP_OK);
     }
 
-    /**
-     * @Route("/check", name="teams.check")
-     */
+    #[Route('/check', name: 'teams.check')]
     public function wasImported(Request $request): Response
     {
         $user = $this->ssoService->isAllowedUser($request->request->get('email'));
