@@ -18,6 +18,7 @@
     ],
     "require": {
         "php": "^8.5",
+        "firebase/php-jwt": "^7.0",
         "pumukit/pumukit": "^6.0"
     },
     "autoload": {

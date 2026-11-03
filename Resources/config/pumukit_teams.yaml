@@ -8,11 +8,18 @@ services:
     resource: '../../Controller'
     tags: ['controller.service_arguments']
 
-  Pumukit\TeamsBundle\Services\APIService:
-    class: Pumukit\TeamsBundle\Services\APIService
+  Pumukit\TeamsBundle\Services\TokenValidator:
+    arguments:
+      $cache: '@pumukit_teams.cache'
+      $clientId: '%pumukit_teams.client_id%'
+      $tenants: '%pumukit_teams.tenants%'
+      $jwksUri: '%pumukit_teams.jwks_uri%'
 
-  Pumukit\TeamsBundle\Services\MultimediaObjectUpdaterService:
-    class: Pumukit\TeamsBundle\Services\MultimediaObjectUpdaterService
+  Pumukit\TeamsBundle\Services\TeamsAuthenticator: ~
 
-  Pumukit\TeamsBundle\Services\SSOService:
-    class: Pumukit\TeamsBundle\Services\SSOService
+  Pumukit\TeamsBundle\Services\ImportService:
+    arguments:
+      $profile: '%pumukit_teams.profile%'
+      $priority: '%pumukit_teams.priority%'
+      $language: '%pumukit_teams.language%'
+      $locales: '%pumukit.locales%'

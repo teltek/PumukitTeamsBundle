@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Pumukit\TeamsBundle\Controller;
 
-use Pumukit\TeamsBundle\Services\APIService;
-use Pumukit\TeamsBundle\Services\SSOService;
+use Pumukit\TeamsBundle\Services\ImportService;
+use Pumukit\TeamsBundle\Services\TeamsApiException;
+use Pumukit\TeamsBundle\Services\TeamsAuthenticator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -15,47 +17,59 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/teams', methods: ['POST'])]
 class APIController extends AbstractController
 {
-    private SSOService $ssoService;
-    private APIService $apiService;
-
-    public function __construct(SSOService $ssoService, APIService $APIService)
-    {
-        $this->ssoService = $ssoService;
-        $this->apiService = $APIService;
-    }
+    public function __construct(
+        private readonly TeamsAuthenticator $authenticator,
+        private readonly ImportService $importService,
+    ) {}
 
     #[Route('/import', name: 'teams.import')]
     public function import(Request $request): Response
     {
-        $user = $this->ssoService->isAllowedUser($request->request->get('email'));
-        if (!$user) {
-            return new JsonResponse('User not allowed', Response::HTTP_FORBIDDEN);
+        try {
+            $user = $this->authenticator->authenticate($request);
+            $teamsId = $this->teamsId($request);
+            $file = $request->files->get('file');
+            if (!$file instanceof UploadedFile || !$file->isValid()) {
+                throw TeamsApiException::badRequest('Missing recording');
+            }
+            if ($this->importService->isImported($teamsId)) {
+                return new JsonResponse(['imported' => true], Response::HTTP_CONFLICT);
+            }
+
+            $this->importService->import($user, $teamsId, $file, $request->request->getString('title'));
+        } catch (TeamsApiException $exception) {
+            return $this->error($exception);
         }
 
-        $teamsId = $request->request->get('teamsId');
-        $file = $request->files->get('file');
-        $title = $request->request->get('title');
-
-        $this->apiService->create($user, $teamsId, $file, $title);
-
-        return new JsonResponse('Imported!', Response::HTTP_OK);
+        return new JsonResponse(['imported' => true]);
     }
 
     #[Route('/check', name: 'teams.check')]
     public function wasImported(Request $request): Response
     {
-        $user = $this->ssoService->isAllowedUser($request->request->get('email'));
-        if (!$user) {
-            return new JsonResponse('User not allowed', Response::HTTP_FORBIDDEN);
+        try {
+            $this->authenticator->authenticate($request);
+
+            return new JsonResponse(['imported' => $this->importService->isImported($this->teamsId($request))]);
+        } catch (TeamsApiException $exception) {
+            return $this->error($exception);
+        }
+    }
+
+    private function teamsId(Request $request): string
+    {
+        $teamsId = trim($request->request->getString('teamsId'));
+        if ('' === $teamsId || strlen($teamsId) > 1024) {
+            throw TeamsApiException::badRequest('Missing teamsId');
         }
 
-        $teamsId = $request->request->get('teamsId');
+        return $teamsId;
+    }
 
-        $wasImported = $this->apiService->find($teamsId);
-        if ($wasImported) {
-            return new JsonResponse(['imported' => true]);
-        }
+    private function error(TeamsApiException $exception): JsonResponse
+    {
+        $headers = Response::HTTP_UNAUTHORIZED === $exception->status ? ['WWW-Authenticate' => 'Bearer'] : [];
 
-        return new JsonResponse(['imported' => false]);
+        return new JsonResponse(['error' => $exception->getMessage()], $exception->status, $headers);
     }
 }
