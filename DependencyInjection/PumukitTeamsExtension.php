@@ -30,7 +30,8 @@ class PumukitTeamsExtension extends Extension implements PrependExtensionInterfa
     {
         $config = $this->processConfiguration(new Configuration(), $configs);
 
-        $container->setParameter('pumukit_teams.client_id', $config['client_id']);
+        $container->setParameter('pumukit_teams.enable', $config['enable']);
+        $container->setParameter('pumukit_teams.client_id', (string) $config['client_id']);
         $container->setParameter('pumukit_teams.tenants', array_values($config['tenants']));
         $container->setParameter('pumukit_teams.jwks_uri', $config['jwks_uri']);
         $container->setParameter('pumukit_teams.profile', $config['profile']);

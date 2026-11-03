@@ -17,15 +17,22 @@ class Configuration implements ConfigurationInterface
         $rootNode = $treeBuilder->getRootNode();
 
         $rootNode
+            ->validate()
+            ->ifTrue(static fn (array $config): bool => $config['enable'] && [] !== self::missing($config))
+            ->then(static function (array $config): never {
+                throw new \InvalidArgumentException('pumukit_teams needs '.implode(', ', self::missing($config)).' when it is enabled');
+            })
+            ->end()
             ->children()
+            ->booleanNode('enable')
+            ->defaultTrue()
+            ->info('If false, the Teams API gives 404 and client_id and tenants are not required')
+            ->end()
             ->scalarNode('client_id')
-            ->isRequired()
-            ->cannotBeEmpty()
+            ->defaultNull()
             ->info('Application (client) ID of the Azure AD app registration of the PuMuKIT Teams app')
             ->end()
             ->arrayNode('tenants')
-            ->isRequired()
-            ->requiresAtLeastOneElement()
             ->info('Azure AD tenant IDs whose users can import recordings')
             ->scalarPrototype()->cannotBeEmpty()->end()
             ->end()
@@ -52,5 +59,13 @@ class Configuration implements ConfigurationInterface
         ;
 
         return $treeBuilder;
+    }
+
+    private static function missing(array $config): array
+    {
+        return array_values(array_filter([
+            '' === trim((string) $config['client_id']) ? 'client_id' : null,
+            [] === $config['tenants'] ? 'tenants' : null,
+        ]));
     }
 }

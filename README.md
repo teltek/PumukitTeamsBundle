@@ -66,8 +66,9 @@ every locale, with the `title` in every locale and the `teamsId` property, and a
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `client_id` | required | Application (client) ID of the Azure AD app registration of the Teams app |
-| `tenants` | required | Azure AD tenant IDs whose users can import recordings |
+| `enable` | `true` | If false, the API gives 404 and `client_id` and `tenants` are not required |
+| `client_id` | required if enabled | Application (client) ID of the Azure AD app registration of the Teams app |
+| `tenants` | required if enabled | Azure AD tenant IDs whose users can import recordings |
 | `jwks_uri` | `https://login.microsoftonline.com/common/discovery/v2.0/keys` | URL of the public keys that sign the Teams tokens |
 | `profile` | `master_copy` | Encoder profile of the imported recordings |
 | `priority` | `2` | Priority of the encoder jobs |
@@ -82,7 +83,7 @@ The tenant ID of an institution is in **Azure Portal → Microsoft Entra ID → 
   files into the personal series of any user, or find out whether an email had an account. The `email` and `name`
   fields are ignored now. The PuMuKIT Teams app sends the token; its previous versions, which do not, get `401`, so
   update the app before or together with PuMuKIT.
-- `client_id` and `tenants` are required.
+- `client_id` and `tenants` are required, unless the new `enable` option is `false`.
 - **The users need `ROLE_ACCESS_TEAMS_API`.** Before, the permission existed but it was not checked.
 - The title of the imported recordings is saved in every locale; before, it was saved as a nested array.
 - An already imported recording answers `409` instead of creating a second video, and a request without `teamsId` or
