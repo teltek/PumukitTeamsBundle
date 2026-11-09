@@ -64,10 +64,10 @@ class APIService
             $multimediaObject->setI18nTitle($i18nTitle);
         }
 
-        $this->multimediaObjectUpdaterService->addTeamsProperty($multimediaObject, $teamsId);
-
         $jobOptions = new JobOptions(self::DEFAULT_PROFILE, 2, 'en', []);
         $this->jobCreator->fromUploadedFile($multimediaObject, $file, $jobOptions);
+
+        $this->multimediaObjectUpdaterService->addTeamsProperty($multimediaObject, $teamsId);
     }
 
     private function getOrCreatePersonalSeriesForApi(User $user): Series
