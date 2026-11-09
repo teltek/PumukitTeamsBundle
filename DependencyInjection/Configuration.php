@@ -26,7 +26,7 @@ class Configuration implements ConfigurationInterface
             ->children()
             ->booleanNode('enable')
             ->defaultTrue()
-            ->info('If false, the Teams API gives 404 and client_id and tenants are not required')
+            ->info('If false, the Teams API gives 404, client_id and tenants are not required and nothing else of the bundle is loaded: no services, permission or cache pool')
             ->end()
             ->scalarNode('client_id')
             ->defaultNull()

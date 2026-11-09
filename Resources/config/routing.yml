@@ -1,4 +1,4 @@
 pumukit_teams:
     resource: "@PumukitTeamsBundle/Controller/"
-    type:     attribute
+    type:     pumukit_teams
     prefix:   /

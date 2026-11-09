@@ -20,16 +20,11 @@ class APIController extends AbstractController
     public function __construct(
         private readonly TeamsAuthenticator $authenticator,
         private readonly ImportService $importService,
-        private readonly bool $enabled = true,
     ) {}
 
     #[Route('/import', name: 'teams.import')]
     public function import(Request $request): Response
     {
-        if (!$this->enabled) {
-            throw $this->createNotFoundException();
-        }
-
         try {
             $user = $this->authenticator->authenticate($request);
             $teamsId = $this->teamsId($request);
@@ -52,10 +47,6 @@ class APIController extends AbstractController
     #[Route('/check', name: 'teams.check')]
     public function wasImported(Request $request): Response
     {
-        if (!$this->enabled) {
-            throw $this->createNotFoundException();
-        }
-
         try {
             $this->authenticator->authenticate($request);
 

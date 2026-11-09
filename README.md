@@ -66,7 +66,7 @@ every locale, with the `title` in every locale and the `teamsId` property, and a
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `enable` | `true` | If false, the API gives 404 and `client_id` and `tenants` are not required |
+| `enable` | `true` | If false, the API gives 404, `client_id` and `tenants` are not required and nothing else of the bundle is loaded: no services, permission or cache pool |
 | `client_id` | required if enabled | Application (client) ID of the Azure AD app registration of the Teams app |
 | `tenants` | required if enabled | Azure AD tenant IDs whose users can import recordings |
 | `jwks_uri` | `https://login.microsoftonline.com/common/discovery/v2.0/keys` | URL of the public keys that sign the Teams tokens |

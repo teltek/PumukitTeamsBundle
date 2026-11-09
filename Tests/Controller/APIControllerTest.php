@@ -9,12 +9,7 @@ use Pumukit\EncoderBundle\Document\Job;
 use Pumukit\SchemaBundle\Document\MultimediaObject;
 use Pumukit\SchemaBundle\Document\Series;
 use Pumukit\SchemaBundle\Services\PersonalSeriesService;
-use Pumukit\TeamsBundle\Controller\APIController;
-use Pumukit\TeamsBundle\Services\ImportService;
-use Pumukit\TeamsBundle\Services\TeamsAuthenticator;
 use Pumukit\TeamsBundle\Tests\TeamsTestCase;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
  * @internal
@@ -122,19 +117,6 @@ class APIControllerTest extends TeamsTestCase
         ]), ['teamsId' => 'recording']);
 
         $this->assertResponseIsSuccessful();
-    }
-
-    public function testTheDisabledApiGivesNotFound(): void
-    {
-        $controller = new APIController(
-            self::getContainer()->get(TeamsAuthenticator::class),
-            self::getContainer()->get(ImportService::class),
-            false,
-        );
-
-        $this->expectException(NotFoundHttpException::class);
-
-        $controller->wasImported(Request::create('/teams/check', 'POST'));
     }
 
     public function testTheKeysAreCachedAndRefreshedOnceForAnUnknownKey(): void

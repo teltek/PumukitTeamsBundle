@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Pumukit\TeamsBundle\DependencyInjection;
 
 use Pumukit\TeamsBundle\PumukitTeamsBundle;
+use Pumukit\TeamsBundle\Routing\RouteLoader;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\Extension;
@@ -17,6 +18,10 @@ class PumukitTeamsExtension extends Extension implements PrependExtensionInterfa
 
     public function prepend(ContainerBuilder $container): void
     {
+        if (!$this->processConfiguration(new Configuration(), $container->getExtensionConfig($this->getAlias()))['enable']) {
+            return;
+        }
+
         $container->prependExtensionConfig('framework', [
             'cache' => [
                 'pools' => [
@@ -37,6 +42,15 @@ class PumukitTeamsExtension extends Extension implements PrependExtensionInterfa
         $container->setParameter('pumukit_teams.profile', $config['profile']);
         $container->setParameter('pumukit_teams.priority', $config['priority']);
         $container->setParameter('pumukit_teams.language', $config['language'] ?? '%kernel.default_locale%');
+
+        $container->register(RouteLoader::class)
+            ->setArguments(['$enabled' => '%pumukit_teams.enable%', '$env' => '%kernel.environment%'])
+            ->addTag('routing.loader')
+        ;
+
+        if (!$config['enable']) {
+            return;
+        }
 
         $loader = new Loader\YamlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
         $loader->load('pumukit_teams.yaml');
