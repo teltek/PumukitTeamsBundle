@@ -58,8 +58,8 @@ Otherwise the routes answer `401` with `WWW-Authenticate: Bearer` if the token i
 allowed, `400` if `teamsId` or the file is missing or the file is not valid, and `503` if the Microsoft keys cannot be
 fetched. The errors are JSON: `{"error": "User not allowed"}`.
 
-The recording becomes a video of the personal series of the user, created if needed with the *Videos of* title in
-every locale, with the `title` in every locale and the `teamsId` property, and an encoder job with `profile`,
+The recording becomes a video of the personal series of the user, created if needed with the *Videos of* title and the
+full name of the user in every locale, with the `title` in every locale and the `teamsId` property, and an encoder job with `profile`,
 `priority` and `language`.
 
 ## Configuration

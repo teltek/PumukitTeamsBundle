@@ -22,4 +22,3 @@ services:
       $profile: '%pumukit_teams.profile%'
       $priority: '%pumukit_teams.priority%'
       $language: '%pumukit_teams.language%'
-      $locales: '%pumukit.locales%'
