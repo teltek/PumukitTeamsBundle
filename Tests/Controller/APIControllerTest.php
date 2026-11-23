@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Pumukit\TeamsBundle\Tests\Controller;
 
 use Firebase\JWT\JWT;
+use MongoDB\BSON\ObjectId;
 use Pumukit\EncoderBundle\Document\Job;
 use Pumukit\SchemaBundle\Document\MultimediaObject;
 use Pumukit\SchemaBundle\Document\Series;
@@ -85,7 +86,7 @@ class APIControllerTest extends TeamsTestCase
 
         $this->post('/teams/import', $token, ['teamsId' => 'recording-2'], ['file' => $this->recording()]);
         $this->assertResponseIsSuccessful();
-        $this->assertSame(2, $this->dm->getRepository(MultimediaObject::class)->count(['series' => $series->getId()]));
+        $this->assertSame(2, $this->dm->getRepository(MultimediaObject::class)->createStandardQueryBuilder()->field('series')->equals(new ObjectId($series->getId()))->count()->getQuery()->execute());
         $this->assertSame(1, $this->dm->getRepository(Series::class)->count());
     }
 
@@ -101,7 +102,7 @@ class APIControllerTest extends TeamsTestCase
         $this->post('/teams/import', $token, ['teamsId' => 'recording'], ['file' => $this->recording('recording.exe')]);
         $this->assertResponseStatusCodeSame(400);
 
-        $this->assertSame(0, $this->dm->getRepository(MultimediaObject::class)->count(['properties.teamsId' => ['$exists' => true]]));
+        $this->assertSame(0, $this->dm->getRepository(MultimediaObject::class)->createStandardQueryBuilder()->field('properties.teamsId')->exists(true)->count()->getQuery()->execute());
     }
 
     public function testTheVersion2TokensAndTheEmailClaimAreAccepted(): void
@@ -125,14 +126,16 @@ class APIControllerTest extends TeamsTestCase
 
         $this->post('/teams/check', $this->token(), ['teamsId' => 'recording']);
         $this->post('/teams/check', $this->token(), ['teamsId' => 'recording']);
-        $this->assertSame(1, $this->keyRequests);
+        $requests = [$this->keyRequests];
 
         $this->post('/teams/check', $this->token([], 'rotated-key'), ['teamsId' => 'recording']);
         $this->assertResponseStatusCodeSame(401);
-        $this->assertSame(2, $this->keyRequests);
+        $requests[] = $this->keyRequests;
 
         $this->post('/teams/check', $this->token([], 'another-key'), ['teamsId' => 'recording']);
-        $this->assertSame(2, $this->keyRequests);
+        $requests[] = $this->keyRequests;
+        $this->assertSame([1, 2, 2], $requests);
+
         $this->post('/teams/check', $this->token(), ['teamsId' => 'recording']);
         $this->assertResponseIsSuccessful();
     }
